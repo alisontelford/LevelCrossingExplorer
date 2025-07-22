@@ -20,12 +20,12 @@
 ##
 golem::fill_desc(
   pkg_name = "LevelCrossingExplorer", # The name of the golem package containing the app (typically lowercase, no underscore or periods)
-  pkg_title = "PKG_TITLE", # What the Package Does (One Line, Title Case, No Period)
-  pkg_description = "PKG_DESC.", # What the package does (one paragraph).
+  pkg_title = "Explore Level Crossings Across the UK", # What the Package Does (One Line, Title Case, No Period)
+  pkg_description = "Allows the user to explore the locations of level crossings across the UK. Metadata for each level crossing can be displayed by clicking into each.", # What the package does (one paragraph).
   authors = person(
-    given = "AUTHOR_FIRST", # Your First Name
-    family = "AUTHOR_LAST", # Your Last Name
-    email = "AUTHOR@MAIL.COM", # Your email
+    given = "Alison", # Your First Name
+    family = "Telford", # Your Last Name
+    email = "atelford7@gmail.com", # Your email
     role = c("aut", "cre") # Your role (here author/creator)
   ),
   repo_url = NULL, # The URL of the GitHub repo (optional),
@@ -54,7 +54,7 @@ golem::use_recommended_tests()
 ## Favicon ----
 # If you want to change the favicon (default is golem's one)
 golem::use_favicon() # path = "path/to/ico". Can be an online file.
-# golem::remove_favicon() # Uncomment to remove the default favicon
+golem::remove_favicon() # Uncomment to remove the default favicon
 
 ## Add helper functions ----
 golem::use_utils_ui(with_test = TRUE)
