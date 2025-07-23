@@ -7,10 +7,15 @@ Description: Allows the user to explore the locations of level crossings
     across the UK. Metadata for each level crossing can be displayed by
     clicking into each.
 License: MIT + file LICENSE
+Depends: 
+    R (>= 3.5)
 Imports: 
     config,
+    dplyr,
     golem,
-    shiny
+    leaflet,
+    shiny,
+    stringr
 Suggests: 
     spelling,
     testthat (>= 3.0.0)
@@ -19,5 +24,3 @@ Encoding: UTF-8
 Language: en-US
 LazyData: true
 RoxygenNote: 7.3.2
-Depends: 
-    R (>= 3.5)
