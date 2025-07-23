@@ -1,0 +1,20 @@
+#' Level Crossing Master Dataset
+#' 
+#' Provides all the metadata about the level crossings across the UK.
+#' 
+#' @format `lx_data` A tibble with 6855 rows and 11 variables.
+#' \describe{
+#'    \item{id}{Unique level crossing ID.}
+#'    \item{unique_name}{Name of the level crossing.}
+#'    \item{route}{The route on which the level crossing is located.}
+#'    \item{elr}{The Engineers Line Reference for the level crossing.}
+#'    \item{veh_per_day}{The number of vehicle users per day.}
+#'    \item{cyc_and_ped_per_day}{The number of cyclist and pedestrian users per day.}
+#'    \item{trains_per_day}{The number of train crossing the level crossing per day.}
+#'    \item{total_users}{The total number of users per day.}
+#'    \item{main_crossing_type}{The type of level crossing.}
+#'    \item{lat}{The latitude of the level crossing.}
+#'    \item{long}{The longitude of the level crossing.}
+#' }
+#' @source Generated in data-raw/LX_Metadata-csv.R
+"lx_data"
