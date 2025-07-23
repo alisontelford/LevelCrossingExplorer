@@ -15,44 +15,32 @@ mod_level_crossing_map_ui <- function(id) {
         selectizeInput(
           inputId = NS(id, "LX"), 
           label = "Choose a Level Crossing", 
-          choices = LXNames, 
-          selected = LX,
+          choices = NULL, 
+          selected = character(0),
           options = list(
             maxOptions = 7000, 
-            placeholder = 'Please select a level crossing'
+            placeholder = 'Please select a level crossing',
+            onInitialize = I('function() { this.setValue(""); }')
           )
         ),
         selectizeInput(
           inputId = NS(id, "CrossingTypeFilter"), 
           label = "Filter by Crossing Type", 
-          choices = sort(as.vector(unique(Main$Main.Crossing.Type))), 
-          selected = CrossingType,
+          choices = NULL, 
           multiple = TRUE, 
-          options = list(placeholder = 'Please select a crossing type')
+          options = list(
+            placeholder = 'Please select a crossing type', 
+            onInitialize = I('function() { this.setValue(""); }')
+          )
         ),
-        selectizeInput(
-          inputId = NS(id, "ELRFilter"), 
-          label = "Filter by ELR", 
-          choices = unique(Main$ELR), 
-          multiple = TRUE, 
-          selected = ELR, 
-          options = list(placeholder = 'Please select an ELR')
-        ),
-        numericInput(
-          inputId = NS(id, "RenewalDate"), 
-          label = "Renewal Year", 
-          value = as.numeric(format(Sys.Date(), "%Y")), 
-          min = as.numeric(format(Sys.Date(), "%Y")), 
-          max = as.numeric(format(Sys.Date(), "%Y")) + 35),
-        textInput(
-          inputId = NS(id, "FWI"), 
-          label = "Current FWI Score (Change if necessary)", 
-          value = FWI
-        ),
+        actionButton(
+          inputId = NS(id, "reset"),
+          label = "Reset"
+        )
       ),
       mainPanel(
-        leafletOutput(
-          outputId = NS(id, "Map"), 
+        leaflet::leafletOutput(
+          outputId = NS(id, "map"), 
           width="100%", 
           height = 460
         )
@@ -67,31 +55,116 @@ mod_level_crossing_map_ui <- function(id) {
 mod_level_crossing_map_server <- function(id){
   moduleServer(id, function(input, output, session){
     ns <- session$ns
-    output[[paste0("Map", x)]] = renderLeaflet({
-      if (is.null(getSelectedCrossing(input[[paste0("LX", x)]])) == TRUE){
-        m <- leaflet() %>%
-          addTiles() %>%
-          setView(lng = -5, lat = 55, zoom = 5) %>%
-          addMarkers(
-            lng = Main$Long[getFilteredCrossings(input[[paste0("LX", x)]], input[[paste0("CrossingTypeFilter", x)]], input[[paste0("ELRFilter", x)]])], 
-            lat = Main$Lat[getFilteredCrossings(input[[paste0("LX", x)]], input[[paste0("CrossingTypeFilter", x)]], input[[paste0("ELRFilter", x)]])], 
-            popup = Main$Unique.Name[getFilteredCrossings(input[[paste0("LX", x)]], input[[paste0("CrossingTypeFilter", x)]], input[[paste0("ELRFilter", x)]])], 
-            clusterOptions = markerClusterOptions()
+    
+    observe({
+      if (input$LX == ""){
+        updateSelectizeInput(
+          session,
+          "LX",
+          choices = lx_data |>
+            dplyr::filter(
+              is.null(input$CrossingTypeFilter) | {main_crossing_type %in% input$CrossingTypeFilter}
+            ) |>
+            dplyr::pull(unique_name) |>
+            sort()
+        )
+      }
+    })
+    observe({
+      if (input$LX == ""){
+        updateSelectizeInput(
+          session,
+          "CrossingTypeFilter",
+          choices = lx_data |>
+            dplyr::pull(main_crossing_type) |>
+            sort()
+        )
+      } else {
+        updateSelectizeInput(
+          session,
+          "CrossingTypeFilter",
+          selected = lx_data |> 
+            dplyr::filter(unique_name == input$LX) |> 
+            dplyr::pull(main_crossing_type),
+          choices = lx_data |> 
+            dplyr::filter(unique_name == input$LX) |> 
+            dplyr::pull(main_crossing_type)
+        )
+      }
+    })
+    
+    observeEvent(input$reset, {
+      updateSelectizeInput(
+        session,
+        "LX",
+        selected = character(0),
+        choices = lx_data |>
+          dplyr::pull(unique_name) |>
+          sort()
+      )
+      updateSelectizeInput(
+        session,
+        "CrossingTypeFilter",
+        selected = NULL,
+        choices = lx_data |> 
+          dplyr::pull(main_crossing_type)
+      )
+    })
+    
+    output$map = leaflet::renderLeaflet({
+      if (input$LX == ""){
+        lx_data |> 
+          dplyr::filter(is.null(input$CrossingTypeFilter) | {main_crossing_type %in% input$CrossingTypeFilter}) |>
+          leaflet::leaflet() |>
+          leaflet::addTiles() |>
+          leaflet::setView(lng = -5, lat = 55, zoom = 5) |>
+          leaflet::addMarkers(
+            lng = ~long,
+            lat = ~lat,
+            popup = ~paste0(
+                "<b>Name:</b> ", 
+                unique_name,
+                "<br/>",
+                "<b>Crossing Type:</b> ",
+                main_crossing_type,
+                "<br/>",
+                "<b>Route:</b> ",
+                route |> stringr::str_replace_all("_", " ") |> stringr::str_to_title(),
+                "<br/>",
+                "<b>ELR:</b> ",
+                elr,
+                "<br/>",
+                "<b>Trains per day:</b> ",
+                trains_per_day
+              ),
+            clusterOptions = leaflet::markerClusterOptions()
           )
-        m
       }else{
-        lng = Main$Long[getSelectedCrossing(input[[paste0("LX", x)]])] 
-        lat = Main$Lat[getSelectedCrossing(input[[paste0("LX", x)]])]
-        m <- leaflet() %>%
-          addTiles() %>%
-          setView(lng = lng, lat = lat, zoom = 15) %>%
-          addMarkers(
-            lng = lng, 
-            lat = lat, 
-            popup = input[[paste0("LX", x)]], 
-            clusterOptions = markerClusterOptions()
+        lx_data |> 
+          dplyr::filter(unique_name == input$LX) |> 
+          leaflet::leaflet() |>
+          leaflet::addTiles() |>
+          leaflet::addMarkers(
+            lng = ~long,
+            lat = ~lat,
+            popup = ~paste0(
+              "<b>Name:</b> ", 
+              unique_name,
+              "<br/>",
+              "<b>Crossing Type:</b> ",
+              main_crossing_type,
+              "<br/>",
+              "<b>Route:</b> ",
+              route |> stringr::str_replace_all("_", " ") |> stringr::str_to_title(),
+              "<br/>",
+              "<b>ELR:</b> ",
+              elr,
+              "<br/>",
+              "<b>Trains per day:</b> ",
+              trains_per_day
+            ),
+            clusterOptions = leaflet::markerClusterOptions()
           )
-        m
       }
     })
   })

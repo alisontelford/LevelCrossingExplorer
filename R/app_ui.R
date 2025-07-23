@@ -10,7 +10,13 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     fluidPage(
-      golem::golem_welcome_page() # Remove this line to start building your UI
+      titlePanel(
+        "Level Crossing Explorer"
+      ),
+      HTML(
+        "<h5> Disclaimer: Some of this information may be outdated. </h5>"
+      ),
+      mod_level_crossing_map_ui("level_crossing_map_1")
     )
   )
 }
